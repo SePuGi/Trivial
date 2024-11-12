@@ -1,0 +1,45 @@
+ENDPOINTS
+
+
+Registre d’Usuari: Endpoint per crear usuaris nous amb dades d’autenticació.
+Login d’Usuari: Endpoint per a iniciar sessió.
+
+    getUsers
+    getUsersById
+
+    RegisterUser
+        POST /api/users/register
+        Descripció: Registre de nous usuaris.
+        Request Body: { "username": "string", "password": "string" }
+        Response: Estat de confirmació o error.
+
+    LoginUser
+        Descripció: Login de l’usuari existent.
+        Request Body: { "username": "string", "password": "string" }
+        Response: Token de sessió JWT (JSON Web Token) si l’autenticació és correcta o error si falla.
+
+
+-- Partida de Trivial: Endpoint que retorna X preguntes de la API d’Open Trivia Database, fent-les passar com si provenen del propi sistema.
+        https://opentdb.com/api_config.php
+
+Desar Partida: Endpoint per desar els resultats de cada partida (nombre de respostes correctes).
+
+    PostResults
+        POST /api/results
+        Descripció: Desar els resultats de la partida.
+        Request Body: { "userId": "string", "correctAnswers": "number" }
+        Response: Estat de confirmació o error.
+
+
+Rànquing: Endpoint que retorna el rànquing d’usuaris, ordenat per la nota mitjana d’encerts.
+
+    GetRanking
+        GET /api/ranking
+        Descripció: Obtenir el rànquing d’usuaris.
+        Response: Llista d’usuaris amb el total d'encerts.
+
+    Para login y para register
+        Body{
+            "name": "string",
+            "password": "string",
+          }
