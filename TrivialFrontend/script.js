@@ -59,39 +59,54 @@ document.addEventListener('DOMContentLoaded', function () {
     // Llamada para manejar el Login con AJAX
     function LoginForm(event) {
         event.preventDefault(); // Evitar el envío tradicional del formulario
-
+    
         const userL = document.getElementById('userL').value;
         const passL = document.getElementById('passL').value;
-
+    
         const data = {
             name: userL,
             password: passL
         };
-
+    
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'https://26.39.250.148:7230/api/User/login', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
-
-        // Enviar los datos como JSON
-        xhr.send(JSON.stringify(data));
-
+    
         // Manejo de la respuesta de la solicitud
         xhr.onload = function () {
             if (xhr.status >= 200 && xhr.status < 300) {
-                console.log('Login exitoso!', xhr.responseText);
-                alert('Login exitoso!');
-                window.location.href = '/preguntas'; // Cambia esta URL a donde quieras redirigir
+                try {
+                    const response = JSON.parse(xhr.responseText); // Convertir la respuesta a JSON
+                    const token = response.token; // Asegúrate de que "token" sea la clave correcta en la respuesta
+    
+                    if (token) {
+                        localStorage.setItem("sessionToken", token); // Guarda el token en localStorage
+                        console.log('Login exitoso! Token guardado:', token);
+                        alert('Login exitoso!');
+                        window.location.href = './principal/index.html'; // Cambia esta URL a donde quieras redirigir
+                    } else {
+                        console.error('Error: Token no encontrado en la respuesta.');
+                        alert('Error al iniciar sesión. Inténtalo de nuevo.');
+                    }
+                } catch (error) {
+                    console.error('Error al procesar la respuesta del servidor:', error);
+                    alert('Error inesperado. Inténtalo de nuevo.');
+                }
             } else {
-                console.error('Usuario o contraseña incorrectos', xhr.responseText);
+                console.error('Usuario o contraseña incorrectos:', xhr.responseText);
                 alert('Usuario o contraseña incorrectos');
             }
         };
-
+    
         xhr.onerror = function () {
             console.error("Hubo un error con la solicitud AJAX.");
             alert("Hubo un error al intentar conectarse con la API.");
         };
+    
+        // Enviar los datos como JSON
+        xhr.send(JSON.stringify(data));
     }
+    
 
     // Llamada para manejar el Registro con AJAX
     function RegisterForm(event) {

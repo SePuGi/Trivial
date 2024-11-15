@@ -1,0 +1,32 @@
+*{
+    margin: 0;
+}
+::-webkit-scrollbar {
+    width: 0;
+  }
+
+body {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    
+}
+.header {
+    padding: 6% 0 0 20%;
+    margin: 0;
+}
+.footer {
+    padding-left: 20%;
+}
+.tabla {
+    height: 40vh;
+    width: 60%;
+    /* padding: 25vh 0; */
+    margin: 5vh 20%;
+    overflow-y: scroll;
+}
+#filterContainer {
+    width: 20%;
+}

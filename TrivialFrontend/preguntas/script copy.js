@@ -4,22 +4,17 @@ var questions = [];
 // Variable para el puntaje
 var score = 0;
 
-// Variable para la categoría seleccionada
-var selectedCategory = null;
-
 // URL de la API para actualizar la puntuación
 const gameApiUrl = 'https://26.39.250.148:7230/api/Game/SaveGame';
 
 // Obtiene las preguntas desde la API
 document.addEventListener('DOMContentLoaded', function () {
+    // URL de la API de trivia
+    const apiUrl = 'https://opentdb.com/api.php?amount=10&type=multiple';
+    
 
     // Función para obtener los datos de la API de trivia
-    function fetchTriviaData(categoria) {
-        // Guardamos la categoría seleccionada
-        selectedCategory = categoria;
-
-        // URL de la API de trivia
-        const apiUrl = 'https://opentdb.com/api.php?amount=3&category=' + categoria;
+    function fetchTriviaData() {
         fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
@@ -43,55 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    function fetchCategories() {
-        const url = 'https://26.39.250.148:7230/api/Game/category';
-
-        // Crear una solicitud AJAX con Fetch API
-        fetch(url)
-            .then(response => {
-                // Verificamos si la respuesta es exitosa
-                if (!response.ok) {
-                    throw new Error('Error al obtener datos');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Llenamos el select con las opciones obtenidas de la API
-                const select = document.getElementById('categorySelect');
-                data.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.id;  // Supongo que el id es el valor que deseas
-                    option.textContent = category.name;  // El nombre de la categoría es el texto visible
-                    select.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Error en la solicitud:', error);
-            });
-    }
-
-    // Función que se ejecuta cuando se selecciona una categoría
-    function onCategorySelect() {
-        const select = document.getElementById('categorySelect');
-        const selectedValue = select.value;
-        
-        if (selectedValue) {
-            console.log('Categoría seleccionada:', selectedValue);
-            fetchTriviaData(selectedValue);
-            // Aquí puedes realizar la lógica que desees con el valor seleccionado
-        } else {
-            console.log('No se ha seleccionado una categoría');
-        }
-    }
-
-    // Llamamos a la función para obtener las categorías cuando se carga la página
-    window.onload = function() {
-        fetchCategories();
-
-        // Escuchamos el evento 'change' del select para ejecutar la función
-        const select = document.getElementById('categorySelect');
-        select.addEventListener('change', onCategorySelect);
-    };
+    // Llamar a la función para obtener los datos de la trivia
+    fetchTriviaData();
 });
 
 // Variable para hacer referencia al formulario de preguntas en el HTML
@@ -127,10 +75,6 @@ function createQuestion() {
     if (questions.length === 0) {
         // Si no hay preguntas, finalizar el juego
         questionForm.innerHTML = "<h1>¡Juego terminado! Has respondido todas las preguntas. Puntuación final: " + score + " puntos.</h1>";
-        
-        // Enviar la puntuación final al terminar el juego
-        updateGameAPI();
-        
         return;
     }
 
@@ -212,14 +156,7 @@ function submitAnswer() {
 
                 // Verificar si hay más preguntas, si no, finalizar el juego
                 if (questions.length == 0) {
-                    scoreF = score;
-                    if (score > 0) {
-                        scoreF = (score - 1);
-                    }
-                    questionForm.innerHTML = "<h1>¡Juego terminado! Has respondido todas las preguntas correctamente. Puntuación final: " + scoreF  + " puntos.</h1>";
-                    
-                    // Enviar la puntuación final al terminar el juego
-                    updateGameAPI();
+                    questionForm.innerHTML = "<h1>¡Juego terminado! Has respondido todas las preguntas correctamente. Puntuación final: " + score + " puntos.</h1>";
                     return;
                 }
 
@@ -227,6 +164,9 @@ function submitAnswer() {
                 setTimeout(function () {
                     createQuestion();
                 }, 500);
+
+                // Enviar la puntuación a la API de actualización
+                updateGameAPI();
 
                 return;
             } else {
@@ -248,46 +188,36 @@ function submitAnswer() {
                     createQuestion();
                 }, 500);
 
+                // Enviar la puntuación a la API de actualización
+                updateGameAPI();
+
                 return;
             }
         }
     }
 }
 
-// Función para actualizar la puntuación, el número de partida, la categoría y el token en la API
+// Función para actualizar la puntuación y el número de partida en la API
 function updateGameAPI() {
-    const token = localStorage.getItem('sessionToken');
-
-    if (!token) {
-        console.error('Token no encontrado. No se puede actualizar la puntuación.');
-        return;
-    }
-
+    // Datos a enviar a la API (ajusta según sea necesario)
     const data = {
-        categoryId: parseInt(selectedCategory),
-        correctAnswers: parseInt(score)
+        score: score, // La puntuación actual
+        gameNumber: 1 // Incrementar el número de la partida (puedes cambiar esta lógica según tus necesidades)
     };
 
-    console.log('Enviando datos a la API:', data);
-
+    // Enviar los datos a la API usando Fetch
     fetch(gameApiUrl, {
-        method: 'POST',
+        method: 'POST', // O 'PATCH' si ya existe un recurso
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(data)
     })
     .then(response => {
-        console.log('Status de la respuesta:', response.status);
-        return response.json(); // Intentar convertir la respuesta en JSON
-    })
-    .then(responseData => {
-        if (responseData) {
-            console.log('Respuesta de la API:', responseData);
-        } else {
-            console.log('No se recibió respuesta en formato JSON');
+        if (!response.ok) {
+            throw new Error('Error al actualizar la puntuación: ' + response.statusText);
         }
+        console.log("Puntuación y número de partida actualizados correctamente.");
     })
     .catch(error => {
         console.error('Hubo un problema con la solicitud de actualización:', error);
