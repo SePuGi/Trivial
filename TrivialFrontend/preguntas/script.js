@@ -212,11 +212,7 @@ function submitAnswer() {
 
                 // Verificar si hay más preguntas, si no, finalizar el juego
                 if (questions.length == 0) {
-                    scoreF = score;
-                    if (score > 0) {
-                        scoreF = (score - 1);
-                    }
-                    questionForm.innerHTML = "<h1>¡Juego terminado! Has respondido todas las preguntas correctamente. Puntuación final: " + scoreF  + " puntos.</h1>";
+                    questionForm.innerHTML = "<h1>¡Juego terminado! Has respondido todas las preguntas correctamente. Puntuación final: " + score + " puntos.</h1>";
                     
                     // Enviar la puntuación final al terminar el juego
                     updateGameAPI();
@@ -254,37 +250,57 @@ function submitAnswer() {
     }
 }
 
-// Función para actualizar la puntuación, el número de partida, la categoría y el token en la API
 function updateGameAPI() {
     const token = localStorage.getItem('sessionToken');
 
+    // Verificar si el token está presente
     if (!token) {
         console.error('Token no encontrado. No se puede actualizar la puntuación.');
-        return;
+        return;  // No se envía la solicitud si no hay token
     }
 
+    // Verificar los valores de `selectedCategory` y `score` antes de enviarlos
+    console.log('Categoria seleccionada:', selectedCategory);
+    console.log('Puntuación:', score);
+
+    // Asegúrate de que los valores sean números válidos
+    const categoryId = parseInt(selectedCategory);
+    const correctAnswers = parseInt(score);
+
+    // Verificar si los valores son válidos
+    if (isNaN(categoryId) || isNaN(correctAnswers)) {
+        console.error('Los valores de categoryId o correctAnswers no son válidos.');
+        return;  // No enviar los datos si alguno es inválido
+    }
+
+    // Crear el objeto `data` a enviar
     const data = {
-        categoryId: parseInt(selectedCategory),
-        correctAnswers: parseInt(score)
+        categoryId: categoryId,  // ID de la categoría
+        correctAnswers: correctAnswers  // Número de respuestas correctas
     };
 
     console.log('Enviando datos a la API:', data);
 
+    // Realizar la solicitud HTTP con Fetch
     fetch(gameApiUrl, {
-        method: 'POST',
+        method: 'POST',  // Utilizar POST para enviar los datos
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json',  // Indicar que estamos enviando JSON
+            'Authorization': `Bearer ${token}`  // Incluir el token de autorización
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data)  // Convertir los datos a JSON
     })
     .then(response => {
-        console.log('Status de la respuesta:', response.status);
-        return response.json(); // Intentar convertir la respuesta en JSON
+        console.log('Estado de la respuesta:', response.status);  // Verificar el código de estado de la respuesta
+        if (!response.ok) {
+            throw new Error('Error al actualizar la puntuación: ' + response.statusText);  // Lanzar un error si la respuesta no es exitosa
+        }
+        return response;  // Intentar convertir la respuesta a JSON
     })
     .then(responseData => {
         if (responseData) {
             console.log('Respuesta de la API:', responseData);
+            // Aquí puedes procesar la respuesta de la API, si es necesario
         } else {
             console.log('No se recibió respuesta en formato JSON');
         }
